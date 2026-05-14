@@ -3,6 +3,7 @@
 This directory is for clean upstream repositories used by ShoulderLab.
 
 - `HSMR/`: Git submodule for `https://github.com/IsshikiHugh/HSMR.git`
+- `vggt/`: Git submodule for `https://github.com/facebookresearch/vggt.git`
 
 Do not edit files inside third-party repositories for ShoulderLab changes. Put project code in `shoulderlab/` or `scripts/`, and keep inputs/outputs under the repository-level `data_inputs/` and `data_outputs/` directories.
 

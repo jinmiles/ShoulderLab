@@ -5,9 +5,10 @@ Instructions for AI coding agents working in this repository.
 ## Mission
 
 ShoulderLab is a project-owned shoulder range-of-motion analysis layer on top of
-the upstream HSMR project. Keep ShoulderLab code, documents, data paths, and
-analysis behavior under project control while preserving `third_party/HSMR` as a
-clean upstream dependency.
+upstream computer-vision and body-model projects. Keep ShoulderLab code,
+documents, data paths, and analysis behavior under project control while
+preserving `third_party/HSMR` and `third_party/vggt` as clean upstream
+dependencies.
 
 ## Ground Rules
 
@@ -15,9 +16,10 @@ clean upstream dependency.
   instructions.
 - Read the relevant code before editing. Prefer small, targeted changes that
   match the existing style.
-- Do not modify `third_party/HSMR/` or `third_party/HSMR/thirdparty/SKEL/` for
-  ShoulderLab-specific behavior unless the user explicitly asks for an upstream
-  patch. Put integration code in `shoulderlab/`, `scripts/`, or `docs/`.
+- Do not modify `third_party/HSMR/`, `third_party/HSMR/thirdparty/SKEL/`, or
+  `third_party/vggt/` for ShoulderLab-specific behavior unless the user
+  explicitly asks for an upstream patch. Put integration code in `shoulderlab/`,
+  `scripts/`, or `docs/`.
 - Do not commit generated data, local model assets, videos, checkpoints, plots,
   or analysis outputs. `data_inputs/`, `data_outputs/`, and `.cache/` are local
   workspace directories.
@@ -73,6 +75,7 @@ clean upstream dependency.
 - `scripts/shoulderlab.py`: thin executable wrapper for the package CLI.
 - `docs/`: research notes, math notes, reports, and project writeups.
 - `third_party/HSMR/`: upstream HSMR Git submodule. Keep clean.
+- `third_party/vggt/`: upstream VGGT Git submodule. Keep clean.
 - `data_inputs/`: local videos, body models, checkpoints, and other assets.
 - `data_outputs/`: generated reconstructions, JSON, CSV, plots, and videos.
 

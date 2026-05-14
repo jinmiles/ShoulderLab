@@ -1,3 +1,6 @@
 [submodule "third_party/HSMR"]
 	path = third_party/HSMR
 	url = https://github.com/IsshikiHugh/HSMR.git
+[submodule "third_party/vggt"]
+	path = third_party/vggt
+	url = https://github.com/facebookresearch/vggt.git

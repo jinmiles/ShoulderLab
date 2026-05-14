@@ -7,6 +7,7 @@ ShoulderLab is a shoulder range-of-motion analysis workspace built on top of the
 - `shoulderlab/`: ShoulderLab Python package.
 - `scripts/shoulderlab.py`: command line entrypoint.
 - `third_party/HSMR/`: upstream HSMR submodule. Do not edit this directory for ShoulderLab changes.
+- `third_party/vggt/`: upstream VGGT submodule. Do not edit this directory for ShoulderLab changes.
 - `data_inputs/`: local input videos, models, checkpoints, and body-model assets.
 - `data_outputs/`: generated HSMR reconstructions and ShoulderLab analysis outputs.
 - `docs/`: shoulder ROM notes and Q2 analysis writeups.
@@ -164,7 +165,7 @@ Q2_Temporal_Feature_Noise_Report.md
 
 ## Third-party Code
 
-HSMR is included as a Git submodule:
+HSMR and VGGT are included as Git submodules:
 
 ```bash
 git submodule status
@@ -180,10 +181,10 @@ cd ../..
 git add third_party/HSMR
 ```
 
-Keep ShoulderLab changes in `shoulderlab/`, `scripts/`, or `docs/`. Do not patch `third_party/HSMR` for project-specific behavior.
+Keep ShoulderLab changes in `shoulderlab/`, `scripts/`, or `docs/`. Do not patch `third_party/HSMR` or `third_party/vggt` for project-specific behavior.
 
 ## License
 
 ShoulderLab is released under the MIT License. See `LICENSE`.
 
-The upstream HSMR submodule is also MIT licensed; see `third_party/HSMR/LICENSE`. External body models, checkpoints, datasets, Detectron2, SKEL, SMPL/SMPLify assets, and other dependencies may have their own licenses or access terms. Follow those upstream terms when redistributing or publishing results.
+The upstream HSMR and VGGT submodules have their own licenses; see each upstream repository. External body models, checkpoints, datasets, Detectron2, SKEL, SMPL/SMPLify assets, and other dependencies may have their own licenses or access terms. Follow those upstream terms when redistributing or publishing results.
