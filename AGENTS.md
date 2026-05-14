@@ -71,7 +71,7 @@ dependencies.
   - `analyze.py`: HSMR output loading, SKEL joint recovery, ROM analysis flow.
   - `rom.py`: local coordinate system, shoulder angles, temporal features, and
     visualization helpers.
-  - `q2_summary.py`: CSV and Markdown summary generation for temporal features.
+  - `summary.py`: CSV and Markdown summary generation for temporal features.
 - `scripts/shoulderlab.py`: thin executable wrapper for the package CLI.
 - `docs/`: research notes, math notes, reports, and project writeups.
 - `third_party/HSMR/`: upstream HSMR Git submodule. Keep clean.
@@ -99,7 +99,7 @@ Python 3.8 setup. Match `torch` and CUDA to the local machine.
 python scripts/shoulderlab.py --help
 python scripts/shoulderlab.py analyze --help
 python scripts/shoulderlab.py hsmr --help
-python scripts/shoulderlab.py q2-summary --help
+python scripts/shoulderlab.py summary --help
 ```
 
 Analyze one existing HSMR `.npy` result without rendering video:
@@ -107,16 +107,20 @@ Analyze one existing HSMR `.npy` result without rendering video:
 ```bash
 python scripts/shoulderlab.py analyze \
   -i data_outputs/UUCM/HSMR-001_Flexion.npy \
-  -o data_outputs/UUCM/q2_analysis \
+  -o data_outputs/UUCM/analysis \
   -s right \
   --skip-video
 ```
 
-Generate the Q2 summary from existing result JSON files:
+Generate the temporal summary from existing result JSON files:
 
 ```bash
-python scripts/shoulderlab.py q2-summary data_outputs/UUCM/q2_analysis
+python scripts/shoulderlab.py summary data_outputs/UUCM/analysis
 ```
+
+`analyze-uucm` should write per-sample plots/JSON and temporal summary CSV/Markdown
+into the same `data_outputs/UUCM/analysis` directory. Do not reintroduce a
+separate `analysis` default path.
 
 ## Validation
 

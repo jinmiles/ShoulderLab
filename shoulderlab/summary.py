@@ -1,4 +1,4 @@
-"""Summarize Q2 shoulder temporal feature outputs."""
+"""Summarize shoulder temporal feature outputs."""
 
 import csv
 import json
@@ -122,7 +122,7 @@ def write_markdown(rows, path: Path, output_dir: Path):
     all_acc_noise = [r['empirical_acceleration_noise_std_deg_s2'] for r in rows if r['empirical_acceleration_noise_std_deg_s2'] is not None]
 
     lines = []
-    lines.append('# Q2 Temporal Feature and Noise Amplification Report')
+    lines.append('# Temporal Feature and Noise Amplification Report')
     lines.append('')
     lines.append('## Data and Method')
     lines.append('')
@@ -162,20 +162,20 @@ def write_markdown(rows, path: Path, output_dir: Path):
     lines.append('')
     lines.append('## Full Outputs')
     lines.append('')
-    lines.append(f"- CSV summary: `{output_dir / 'q2_temporal_feature_summary.csv'}`")
+    lines.append(f"- CSV summary: `{output_dir / 'temporal_feature_summary.csv'}`")
     lines.append(f"- Per-sample JSON and plots: `{output_dir}`")
     lines.append('- Each `*_results.json` contains `temporal_features` with smoothed angles, angular velocity, angular acceleration, peak data, movement intervals, and noise estimates.')
     lines.append('')
-    lines.append('## Suggested Q2 Answer')
+    lines.append('## Suggested Answer')
     lines.append('')
     lines.append('실제 HSMR 3D joint coordinate 시계열에서 어깨각도 3종을 계산한 뒤, Savitzky-Golay smoothing을 적용해 각속도와 각가속도를 산출했습니다. 미분 전 노이즈는 raw angle과 smoothed angle의 차이로 추정했으며, 30 fps 기준 1차 미분은 대략 `sqrt(2)/dt`, 2차 미분은 `sqrt(6)/dt^2`만큼 노이즈가 커질 수 있습니다. 실제 데이터에서도 각도 jitter는 deg 단위로 작아도 각가속도 노이즈는 deg/s^2 단위로 크게 증가하므로, derivative feature를 쓰기 전 smoothing 전처리가 필요하다는 결론입니다.')
     lines.append('')
     path.write_text('\n'.join(lines) + '\n')
 
 
-def summarize_q2(
-    input_dir: Path = DATA_OUTPUTS / 'UUCM' / 'q2_analysis',
-    docs_path: Path = SHOULDERLAB_ROOT / 'docs' / 'Q2_Temporal_Feature_Noise_Report.md',
+def summarize_analysis(
+    input_dir: Path = DATA_OUTPUTS / 'UUCM' / 'analysis',
+    docs_path: Path = SHOULDERLAB_ROOT / 'docs' / 'Temporal_Feature_Noise_Report.md',
 ) -> dict:
     """Write CSV and Markdown summaries for `*_results.json` files."""
     input_dir = Path(input_dir)
@@ -185,8 +185,8 @@ def summarize_q2(
     if not rows:
         raise SystemExit(f'No *_results.json files found in {input_dir}')
 
-    csv_path = input_dir / 'q2_temporal_feature_summary.csv'
-    md_path = input_dir / 'Q2_Temporal_Feature_Noise_Report.md'
+    csv_path = input_dir / 'temporal_feature_summary.csv'
+    md_path = input_dir / 'Temporal_Feature_Noise_Report.md'
     write_csv(rows, csv_path)
     write_markdown(rows, md_path, input_dir)
     docs_path.parent.mkdir(parents=True, exist_ok=True)

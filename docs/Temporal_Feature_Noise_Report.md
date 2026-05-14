@@ -1,4 +1,4 @@
-# Q2 Temporal Feature and Noise Amplification Report
+# Temporal Feature and Noise Amplification Report
 
 ## Data and Method
 
@@ -37,10 +37,10 @@ The acceleration noise scale is much larger than angle noise because the second 
 
 ## Full Outputs
 
-- CSV summary: `/home/user/extra_workdir/ShoulderLab/data_outputs/UUCM/q2_analysis/q2_temporal_feature_summary.csv`
-- Per-sample JSON and plots: `/home/user/extra_workdir/ShoulderLab/data_outputs/UUCM/q2_analysis`
+- CSV summary: `/home/user/extra_workdir/ShoulderLab/data_outputs/UUCM/analysis/temporal_feature_summary.csv`
+- Per-sample JSON and plots: `/home/user/extra_workdir/ShoulderLab/data_outputs/UUCM/analysis`
 - Each `*_results.json` contains `temporal_features` with smoothed angles, angular velocity, angular acceleration, peak data, movement intervals, and noise estimates.
 
-## Suggested Q2 Answer
+## Suggested Answer
 
 실제 HSMR 3D joint coordinate 시계열에서 어깨각도 3종을 계산한 뒤, Savitzky-Golay smoothing을 적용해 각속도와 각가속도를 산출했습니다. 미분 전 노이즈는 raw angle과 smoothed angle의 차이로 추정했으며, 30 fps 기준 1차 미분은 대략 `sqrt(2)/dt`, 2차 미분은 `sqrt(6)/dt^2`만큼 노이즈가 커질 수 있습니다. 실제 데이터에서도 각도 jitter는 deg 단위로 작아도 각가속도 노이즈는 deg/s^2 단위로 크게 증가하므로, derivative feature를 쓰기 전 smoothing 전처리가 필요하다는 결론입니다.

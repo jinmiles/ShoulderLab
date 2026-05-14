@@ -10,7 +10,7 @@ ShoulderLab is a shoulder range-of-motion analysis workspace built on top of the
 - `third_party/vggt/`: upstream VGGT submodule. Do not edit this directory for ShoulderLab changes.
 - `data_inputs/`: local input videos, models, checkpoints, and body-model assets.
 - `data_outputs/`: generated HSMR reconstructions and ShoulderLab analysis outputs.
-- `docs/`: shoulder ROM notes and Q2 analysis writeups.
+- `docs/`: shoulder ROM notes and temporal analysis writeups.
 
 ## Setup
 
@@ -87,7 +87,7 @@ python scripts/shoulderlab.py analyze --help
 python scripts/shoulderlab.py analyze-uucm --help
 python scripts/shoulderlab.py hsmr --help
 python scripts/shoulderlab.py hsmr-uucm --help
-python scripts/shoulderlab.py q2-summary --help
+python scripts/shoulderlab.py summary --help
 ```
 
 ## Quick Start
@@ -97,12 +97,12 @@ Analyze one existing HSMR `.npy` result:
 ```bash
 python scripts/shoulderlab.py analyze \
   -i data_outputs/UUCM/HSMR-001_Flexion.npy \
-  -o data_outputs/UUCM/q2_analysis \
+  -o data_outputs/UUCM/analysis \
   -s right \
   --skip-video
 ```
 
-Analyze all UUCM `.npy` files:
+Analyze all UUCM `.npy` files and write temporal summaries into the same `analysis` directory:
 
 ```bash
 python scripts/shoulderlab.py analyze-uucm \
@@ -111,10 +111,10 @@ python scripts/shoulderlab.py analyze-uucm \
   --skip-video
 ```
 
-Generate Q2 temporal feature summaries:
+Regenerate temporal feature summaries from existing result JSON files:
 
 ```bash
-python scripts/shoulderlab.py q2-summary data_outputs/UUCM/q2_analysis
+python scripts/shoulderlab.py summary data_outputs/UUCM/analysis
 ```
 
 ## HSMR Reconstruction
@@ -156,11 +156,11 @@ ShoulderLab ROM analysis writes:
 *_combined_skeleton_reach.png
 ```
 
-`q2-summary` writes:
+`summary` writes:
 
 ```text
-q2_temporal_feature_summary.csv
-Q2_Temporal_Feature_Noise_Report.md
+temporal_feature_summary.csv
+Temporal_Feature_Noise_Report.md
 ```
 
 ## Third-party Code

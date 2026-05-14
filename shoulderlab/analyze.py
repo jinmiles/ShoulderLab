@@ -284,9 +284,10 @@ def run_analysis(
 def run_batch_analysis(
     input_dir: Path = DATA_OUTPUTS / "UUCM",
     output_dir: Path = DATA_OUTPUTS / "UUCM" / "analysis",
+    write_summary: bool = True,
     **analysis_kwargs,
 ) -> list[dict]:
-    """Run ROM analysis for all reconstructed `.npy` files in a directory."""
+    """Run ROM analysis for all reconstructed `.npy` files and write summaries."""
     input_dir = Path(input_dir)
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -305,4 +306,8 @@ def run_batch_analysis(
                 **analysis_kwargs,
             )
         )
+    if write_summary:
+        from shoulderlab.summary import summarize_analysis
+
+        summarize_analysis(input_dir=output_dir)
     return results

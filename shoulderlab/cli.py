@@ -68,7 +68,7 @@ def build_parser() -> argparse.ArgumentParser:
     analyze.add_argument("-s", "--side", choices=["right", "left", "both"], default="both")
     _add_analysis_options(analyze)
 
-    analyze_uucm = subparsers.add_parser("analyze-uucm", help="Analyze all UUCM HSMR .npy outputs.")
+    analyze_uucm = subparsers.add_parser("analyze-uucm", help="Analyze all UUCM HSMR .npy outputs and write summaries.")
     analyze_uucm.add_argument("--input-dir", type=Path, default=DATA_OUTPUTS / "UUCM")
     analyze_uucm.add_argument("--output-dir", type=Path, default=DATA_OUTPUTS / "UUCM" / "analysis")
     analyze_uucm.add_argument("-s", "--side", choices=["right", "left", "both"], default="both")
@@ -84,9 +84,9 @@ def build_parser() -> argparse.ArgumentParser:
     hsmr_uucm.add_argument("--output-dir", type=Path, default=DATA_OUTPUTS / "UUCM")
     _add_hsmr_options(hsmr_uucm)
 
-    q2_summary = subparsers.add_parser("q2-summary", help="Summarize Q2 temporal feature JSON outputs.")
-    q2_summary.add_argument("input_dir", type=Path, nargs="?", default=DATA_OUTPUTS / "UUCM" / "q2_analysis")
-    q2_summary.add_argument("--docs-path", type=Path, default=SHOULDERLAB_ROOT / "docs" / "Q2_Temporal_Feature_Noise_Report.md")
+    summary = subparsers.add_parser("summary", help="Summarize temporal feature JSON outputs.")
+    summary.add_argument("input_dir", type=Path, nargs="?", default=DATA_OUTPUTS / "UUCM" / "analysis")
+    summary.add_argument("--docs-path", type=Path, default=SHOULDERLAB_ROOT / "docs" / "Temporal_Feature_Noise_Report.md")
 
     return parser
 
@@ -128,10 +128,10 @@ def main(argv: list[str] | None = None) -> None:
             output_dir=args.output_dir,
             **_hsmr_kwargs(args),
         )
-    elif args.command == "q2-summary":
-        from shoulderlab.q2_summary import summarize_q2
+    elif args.command == "summary":
+        from shoulderlab.summary import summarize_analysis
 
-        summarize_q2(input_dir=args.input_dir, docs_path=args.docs_path)
+        summarize_analysis(input_dir=args.input_dir, docs_path=args.docs_path)
 
 
 if __name__ == "__main__":
