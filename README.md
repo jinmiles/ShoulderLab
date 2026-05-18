@@ -1,6 +1,10 @@
 # ShoulderLab
 
-ShoulderLab is a shoulder range-of-motion analysis workspace built on top of the upstream HSMR project. The upstream HSMR repository is kept as a clean Git submodule under `third_party/HSMR`; ShoulderLab code, datasets, and outputs live outside that directory.
+ShoulderLab is a research workspace for markerless shoulder range-of-motion
+analysis. It focuses on converting reconstructed human motion into
+shoulder-specific kinematic descriptors, including torso-compensated arm angles,
+temporal movement features, reach-space summaries, and analysis reports for
+functional shoulder assessment.
 
 ## Project Layout
 
@@ -27,22 +31,20 @@ If the repository was cloned without submodules:
 git submodule update --init --recursive
 ```
 
-Use the existing HSMR conda environment. HSMR and the project dependencies are
-already installed there, so do not run `pip install` as a routine setup step:
+Create and activate the ShoulderLab conda environment:
 
 ```bash
-conda activate hsmr
-python --version  # expected: Python 3.8.x
+conda create -n shoulderlab python=3.10
+conda activate shoulderlab
 ```
 
-If the `hsmr` environment does not exist, create it once:
+Install the CUDA-matched PyTorch wheel first, then install the project
+requirements:
 
 ```bash
-conda create -n hsmr python=3.8
-conda activate hsmr
+pip install torch==2.3.1 torchvision==0.18.1 --index-url https://download.pytorch.org/whl/cu118
+pip install --no-build-isolation -r requirements.txt
 ```
-
-The default ShoulderLab environment is the `hsmr` conda env with Python 3.8, matching HSMR's version-pinned setup notes in `third_party/HSMR/docs/requirements_py3.8.txt`. HSMR also reports testing on Python 3.10, but use the existing Python 3.8 `hsmr` env first unless you have a reason to change it. Match your `torch` build to your local CUDA setup.
 
 ## Data Preparation
 
