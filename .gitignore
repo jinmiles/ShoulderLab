@@ -1,6 +1,7 @@
 __pycache__/
 *.py[cod]
 .cache/
+.vscode/
 
 data_inputs/
 data_outputs/
