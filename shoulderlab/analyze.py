@@ -4,6 +4,7 @@ import json
 import numpy as np
 import torch
 from pathlib import Path
+from typing import Optional, List, Dict
 from tqdm import tqdm
 
 from shoulderlab.paths import DATA_OUTPUTS, DEFAULT_MODEL_ROOT, configure_hsmr_paths
@@ -136,7 +137,7 @@ def run_analysis(
     fps: float = 30.0,
     sg_window_sec: float = 0.33,
     sg_polyorder: int = 3,
-    peak_prominence_deg: float | None = None,
+    peak_prominence_deg: Optional[float] = None,
     skip_video: bool = False,
     skel_bs: int = 200,
 ) -> dict:
@@ -286,7 +287,7 @@ def run_batch_analysis(
     output_dir: Path = DATA_OUTPUTS / "UUCM" / "analysis",
     write_summary: bool = True,
     **analysis_kwargs,
-) -> list[dict]:
+) -> List[Dict]:
     """Run ROM analysis for all reconstructed `.npy` files and write summaries."""
     input_dir = Path(input_dir)
     output_dir = Path(output_dir)
