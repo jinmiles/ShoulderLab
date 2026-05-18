@@ -11,6 +11,7 @@ functional shoulder assessment.
 - `shoulderlab/`: ShoulderLab Python package.
 - `scripts/shoulderlab.py`: command line entrypoint.
 - `third_party/HSMR/`: upstream HSMR submodule. Do not edit this directory for ShoulderLab changes.
+- `third_party/Pi3/`: upstream Pi3 submodule for visual geometry experiments.
 - `third_party/vggt/`: upstream VGGT submodule. Do not edit this directory for ShoulderLab changes.
 - `data_inputs/`: local input videos, models, checkpoints, and body-model assets.
 - `data_outputs/`: generated HSMR reconstructions and ShoulderLab analysis outputs.
@@ -167,7 +168,7 @@ Temporal_Feature_Noise_Report.md
 
 ## Third-party Code
 
-HSMR and VGGT are included as Git submodules:
+HSMR, Pi3, and VGGT are included as Git submodules:
 
 ```bash
 git submodule status
@@ -183,10 +184,10 @@ cd ../..
 git add third_party/HSMR
 ```
 
-Keep ShoulderLab changes in `shoulderlab/`, `scripts/`, or `docs/`. Do not patch `third_party/HSMR` or `third_party/vggt` for project-specific behavior.
+Keep ShoulderLab changes in `shoulderlab/`, `scripts/`, or `docs/`. Do not patch `third_party/HSMR`, `third_party/Pi3`, or `third_party/vggt` for project-specific behavior.
 
 ## License
 
 ShoulderLab is released under the MIT License. See `LICENSE`.
 
-The upstream HSMR and VGGT submodules have their own licenses; see each upstream repository. External body models, checkpoints, datasets, Detectron2, SKEL, SMPL/SMPLify assets, and other dependencies may have their own licenses or access terms. Follow those upstream terms when redistributing or publishing results.
+The upstream HSMR, Pi3, and VGGT submodules have their own licenses; see each upstream repository. External body models, checkpoints, datasets, Detectron2, SKEL, SMPL/SMPLify assets, Pi3/Pi3X weights, and other dependencies may have their own licenses or access terms. Follow those upstream terms when redistributing or publishing results.

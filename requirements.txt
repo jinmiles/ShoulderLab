@@ -13,6 +13,7 @@ numpy==1.24.4
 omegaconf==2.3.0
 opencv-python==4.10.0.82
 Pillow==10.4.0
+plyfile
 pyrender==0.1.45
 pytorch_lightning==2.3.3
 PyYAML==6.0.2
@@ -33,4 +34,5 @@ wis3d==1.0.1
 
 -e ./third_party/HSMR
 -e ./third_party/HSMR/thirdparty/SKEL
+-e ./third_party/Pi3
 -e ./third_party/vggt
