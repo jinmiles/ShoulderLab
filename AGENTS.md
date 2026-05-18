@@ -23,6 +23,13 @@ dependencies.
 - Do not commit generated data, local model assets, videos, checkpoints, plots,
   or analysis outputs. `data_inputs/`, `data_outputs/`, and `.cache/` are local
   workspace directories.
+- When the user asks for tests, or when you run tests/experiments on your own,
+  create a dedicated folder for that test under `tests/`, write any ad hoc test
+  code/scripts inside that folder, and write outputs/artifacts there as well.
+  Run those test scripts from the appropriate conda environment unless the user
+  explicitly asks for a different runtime. `tests/` is ignored by Git and should
+  be preserved until the user deletes it manually or explicitly agrees that you
+  may delete it.
 - Preserve existing user changes. Check `git status --short` before editing and
   avoid reverting unrelated files.
 - Keep generated outputs deterministic where practical. Avoid hidden global state
