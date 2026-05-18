@@ -151,21 +151,19 @@ def compute_angles(
     Local Coordinate System axes:
       X = right-lateral,  Y = superior (up),  Z = anterior (forward)
 
-    Angle Definitions (Elevation + Plane-of-Elevation decomposition):
-      Flexion    — sagittal component of total elevation
-                   E × sin(φ), where φ = elevation plane azimuth
-                   0° = arm at side, positive = forward, negative = extension
-      Abduction  — coronal component of total elevation
-                   E × cos(φ)
-                   0° = arm at side, positive = lateral, negative = adduction
+    Angle Definitions (axis-projected humerus direction):
+      Flexion    — signed angle of the humerus projected onto the sagittal
+                   YZ plane, from resting down (-Y) toward anterior (+Z).
+                   0° = arm at side, positive = forward, negative = extension.
+      Abduction  — signed angle of the humerus projected onto the coronal
+                   XY plane, from resting down (-Y) toward lateral (+X for
+                   right arm, -X for left arm).
+                   0° = arm at side, positive = lateral, negative = adduction.
       Ext.Rot    — forearm twist around humerus axis (Swing-Twist decomposition)
                    0° = neutral, positive = external rotation
 
-    This decomposition is aligned with the ISB (Wu et al., 2005) parameterization
-    (plane-of-elevation + elevation angle) and guarantees:
-      - Exactly 0° cross-talk for pure single-axis motions at any elevation
-      - No discontinuities or spikes (unlike arctan2 plane projections)
-      - Both values bounded by E (total elevation)
+    Flexion and abduction are independent plane-projected direction angles, not
+    a conserved decomposition of one total elevation angle.
 
     Args:
         joints_local: (T, 44, 3)
@@ -199,24 +197,26 @@ def compute_angles(
             continue
         H = humerus_raw / h_norm
 
-        # ── 1. Flexion & Abduction (Elevation + Plane-of-Elevation) ──
-        # Total elevation angle from resting posture (-Y)
-        cos_el    = np.clip(np.dot(H, Y_rest), -1.0, 1.0)
-        elevation = np.arccos(cos_el)  # radians [0, π]
+        # ── 1. Flexion & Abduction (axis-projected humerus direction) ──
+        # Cosine of the angle from resting posture (-Y); reused below for
+        # external-rotation swing/twist.
+        cos_el = np.clip(np.dot(H, Y_rest), -1.0, 1.0)
 
-        # Elevation plane azimuth (φ):
-        #   Which direction on the XZ horizontal plane is the arm elevated toward?
-        #   φ = 0°  → coronal plane (pure abduction)
-        #   φ = 90° → sagittal plane (pure flexion)
-        #   φ = -90° → posterior (extension)
-        phi = np.arctan2(H[2], lat_sign * H[0])
+        # Flexion: signed angle in sagittal YZ plane, from -Y toward +Z.
+        # If there is no forward/back component, report 0 for this component.
+        if abs(H[2]) > 1e-6:
+            flexion[t] = np.degrees(np.arctan2(H[2], -H[1]))
+        else:
+            flexion[t] = 0.0
 
-        # Decompose total elevation into clinical components
-        #   Flexion   = E × sin(φ)  — sagittal share of elevation
-        #   Abduction = E × cos(φ)  — coronal share of elevation
-        # Properties: zero cross-talk for pure motions, no spikes, smooth
-        flexion[t]   = np.degrees(elevation * np.sin(phi))
-        abduction[t] = np.degrees(elevation * np.cos(phi))
+        # Abduction: signed angle in coronal XY plane, from -Y toward lateral.
+        # Right lateral is +X; left lateral is -X, so lat_sign maps both sides
+        # to positive abduction.
+        lateral = lat_sign * H[0]
+        if abs(lateral) > 1e-6:
+            abduction[t] = np.degrees(np.arctan2(lateral, -H[1]))
+        else:
+            abduction[t] = 0.0
 
         # ── 2. External Rotation (Swing-Twist Decomposition) ──
         forearm_raw = wrist - elbow

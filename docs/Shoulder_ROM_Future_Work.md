@@ -28,11 +28,11 @@ torso-compensated thoracohumeral arm-angle proxy
 | extension 90도 | `flexion=-90`, `abduction=0` | 일치 |
 | flexion 150도 | `flexion=150`, `abduction=0` | 일치 |
 
-따라서 순수 flexion/abduction 방향의 상완 벡터를 입력했을 때, `E * sin(phi)`와 `E * cos(phi)` 분해는 cross-talk를 만들지 않는다.
+따라서 순수 flexion/abduction 방향의 상완 벡터를 입력했을 때, YZ/XY 평면 투영각은 cross-talk를 만들지 않는다.
 
-### 2.2 고각도 투영 스파이크 회피
+### 2.2 좌표 성분 기반 해석
 
-단순히 2D 평면 투영 후 `atan2()`로 각도를 구하는 방식은 고각도에서 부호 반전이나 180도 스파이크를 만들 수 있다. 현재 방식은 총 거상각 `E`와 거상 평면 방위각 `phi`를 분리하므로 이 문제를 줄인다.
+현재 방식은 상완 벡터의 전방 성분을 flexion/extension, 측방 성분을 abduction/adduction으로 직접 해석한다. 따라서 각 값이 어떤 LCS 축 성분에서 나왔는지 설명하기 쉽고, 순수 전방/측방 동작에서는 직관적인 값을 낸다.
 
 ### 2.3 구현이 단순하고 입력 요구사항이 낮음
 
@@ -77,14 +77,14 @@ R = [X Y Z]
 
 ### 3.3 Flexion/abduction은 회전의 엄밀한 분해가 아님
 
-현재 방식은 총 거상각 `E`를 다음처럼 나눈다.
+현재 방식은 상완 벡터를 서로 다른 두 평면에 투영해 각도를 구한다.
 
 ```text
-flexion   = E * sin(phi)
-abduction = E * cos(phi)
+flexion   = atan2(H_z, -H_y)
+abduction = atan2(lat_sign * H_x, -H_y)
 ```
 
-이는 상완 방향을 임상적으로 이해하기 쉽게 표현하는 휴리스틱 성분 분해다. 하지만 3D 회전은 일반 벡터처럼 큰 각도에서 선형 성분 분해할 수 없다. 따라서 이 값들을 “정확한 해부학적 flexion/abduction 회전각”으로 해석하면 안 된다.
+이는 상완 방향을 임상적으로 이해하기 쉽게 표현하는 좌표 성분 기반 proxy다. 하지만 3D 회전은 평면 투영각 두 개만으로 완전히 표현할 수 없다. 따라서 이 값들을 “정확한 해부학적 flexion/abduction 회전각”으로 해석하면 안 된다.
 
 특히 다음 상황에서 해석이 애매해진다.
 
@@ -95,7 +95,7 @@ abduction = E * cos(phi)
 개선 방향:
 
 - 현재 지표명을 `flexion_component`, `abduction_component`처럼 proxy임이 드러나게 바꿀지 검토한다.
-- ISB식 `plane of elevation`, `elevation angle`, `axial rotation`을 별도 출력으로 추가한다.
+- ISB식 `plane of elevation`, `elevation angle`, `axial rotation`을 별도 출력으로 추가해 현재 투영각 proxy와 구분한다.
 - 기존 `flexion`/`abduction`은 downstream 호환을 위해 유지하되 문서에서 의미를 제한한다.
 
 ### 3.4 External rotation은 전완 기반 proxy임
@@ -151,10 +151,10 @@ ISB 권장 방식은 thorax, scapula, humerus의 segment coordinate system과 sh
 | 어깨 중심 | shoulder joint point | GH center 추정 필요 |
 | 상완 자세 | shoulder-to-elbow 단일 벡터 | humerus local frame |
 | 견갑 움직임 | 미분리 | scapula coordinate system 필요 |
-| 회전 표현 | `E`, `phi` 기반 성분 proxy | Euler/Cardan 또는 JCS sequence |
+| 회전 표현 | YZ/XY 평면 투영각 기반 proxy | Euler/Cardan 또는 JCS sequence |
 | 외회전 | forearm vector 기반 twist proxy | humerus axial rotation |
 
-따라서 현재 방식은 ISB 표준의 일부 개념, 특히 `plane of elevation`과 `elevation angle`의 형태를 참고하지만, ISB 표준 구현이라고 부르면 안 된다.
+따라서 현재 방식은 몸통 기준 상완 방향의 평면 투영각 proxy이며, ISB 표준 구현이라고 부르면 안 된다.
 
 ## 5. 개선 우선순위
 
