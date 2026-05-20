@@ -98,6 +98,8 @@ python scripts/shoulderlab.py --help
 
 ShoulderLab-owned progress messages use colorized, timestamped logs such as
 `[ShoulderLab][YYYY-MM-DD HH:MM:SS][INFO] ...`.
+CLI runs also mirror stdout and stderr to plain-text execution logs under
+`data_outputs/shoulder/logs/`.
 
 Available commands:
 

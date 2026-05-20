@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+from datetime import datetime
 from pathlib import Path
 
 from shoulderlab.log import configure_logging
@@ -279,7 +280,9 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> None:
     args = build_parser().parse_args(argv)
-    logger = configure_logging()
+    log_path = _default_log_path(args.command)
+    logger = configure_logging(log_path=log_path)
+    logger.info("Writing execution log to %s", log_path.resolve())
     logger.info("Starting command: %s", args.command)
 
     try:
@@ -413,6 +416,12 @@ def main(argv: list[str] | None = None) -> None:
         raise
     else:
         logger.info("Finished command: %s", args.command)
+
+
+def _default_log_path(command: str) -> Path:
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    safe_command = command.replace("/", "_")
+    return DATA_OUTPUTS / "shoulder" / "logs" / f"{timestamp}_{safe_command}.log"
 
 
 if __name__ == "__main__":
