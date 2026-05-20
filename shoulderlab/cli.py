@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
+from shoulderlab.log import configure_logging
 from shoulderlab.paths import DATA_INPUTS, DATA_OUTPUTS, DEFAULT_MODEL_ROOT, SHOULDERLAB_ROOT
 
 
@@ -93,45 +94,61 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> None:
     args = build_parser().parse_args(argv)
+    logger = configure_logging()
+    logger.info("Starting command: %s", args.command)
 
-    if args.command == "analyze":
-        from shoulderlab.analyze import run_analysis
+    try:
+        if args.command == "analyze":
+            from shoulderlab.analyze import run_analysis
 
-        run_analysis(
-            input_path=args.input_path,
-            output_path=args.output_dir,
-            side=args.side,
-            **_analysis_kwargs(args),
-        )
-    elif args.command == "analyze-uucm":
-        from shoulderlab.analyze import run_batch_analysis
+            run_analysis(
+                input_path=args.input_path,
+                output_path=args.output_dir,
+                side=args.side,
+                **_analysis_kwargs(args),
+            )
+        elif args.command == "analyze-uucm":
+            from shoulderlab.analyze import run_batch_analysis
 
-        run_batch_analysis(
-            input_dir=args.input_dir,
-            output_dir=args.output_dir,
-            side=args.side,
-            **_analysis_kwargs(args),
-        )
-    elif args.command == "hsmr":
-        from shoulderlab.hsmr import run_hsmr
+            run_batch_analysis(
+                input_dir=args.input_dir,
+                output_dir=args.output_dir,
+                side=args.side,
+                **_analysis_kwargs(args),
+            )
+        elif args.command == "hsmr":
+            from shoulderlab.hsmr import run_hsmr
 
-        run_hsmr(
-            input_path=args.input_path,
-            output_path=args.output_dir,
-            **_hsmr_kwargs(args),
-        )
-    elif args.command == "hsmr-uucm":
-        from shoulderlab.hsmr import run_uucm_hsmr
+            run_hsmr(
+                input_path=args.input_path,
+                output_path=args.output_dir,
+                **_hsmr_kwargs(args),
+            )
+        elif args.command == "hsmr-uucm":
+            from shoulderlab.hsmr import run_uucm_hsmr
 
-        run_uucm_hsmr(
-            input_dir=args.input_dir,
-            output_dir=args.output_dir,
-            **_hsmr_kwargs(args),
-        )
-    elif args.command == "summary":
-        from shoulderlab.summary import summarize_analysis
+            run_uucm_hsmr(
+                input_dir=args.input_dir,
+                output_dir=args.output_dir,
+                **_hsmr_kwargs(args),
+            )
+        elif args.command == "summary":
+            from shoulderlab.summary import summarize_analysis
 
-        summarize_analysis(input_dir=args.input_dir, docs_path=args.docs_path)
+            summarize_analysis(input_dir=args.input_dir, docs_path=args.docs_path)
+    except SystemExit as exc:
+        if exc.code in (0, None):
+            raise
+        if isinstance(exc.code, int):
+            logger.error("Command exited: %s (code=%s)", args.command, exc.code)
+            raise
+        logger.error("%s", exc.code)
+        raise SystemExit(1) from None
+    except Exception:
+        logger.exception("Command failed: %s", args.command)
+        raise
+    else:
+        logger.info("Finished command: %s", args.command)
 
 
 if __name__ == "__main__":

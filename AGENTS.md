@@ -79,6 +79,7 @@ dependencies.
   - `rom.py`: local coordinate system, shoulder angles, temporal features, and
     visualization helpers.
   - `summary.py`: CSV and Markdown summary generation for temporal features.
+  - `log.py`: shared ShoulderLab logging configuration.
 - `scripts/shoulderlab.py`: thin executable wrapper for the package CLI.
 - `docs/`: research notes, math notes, reports, and project writeups.
 - `third_party/HSMR/`: upstream HSMR Git submodule. Keep clean.
@@ -162,6 +163,10 @@ unless the change specifically touches reconstruction behavior.
 - Keep CLI defaults aligned with `README.md` and `shoulderlab.paths`.
 - Keep user-facing output concise, but preserve existing progress logs when they
   help long-running GPU workflows.
+- Use the shared `shoulderlab.log` logger for ShoulderLab-owned Python output.
+  CLI execution should emit timestamped messages formatted like
+  `[ShoulderLab] YYYY-MM-DD HH:MM:SS LEVEL message`. Avoid raw `print()` for
+  new ShoulderLab status/progress messages unless there is a specific reason.
 
 ## Data And Safety
 

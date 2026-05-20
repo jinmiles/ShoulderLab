@@ -4,7 +4,11 @@ import csv
 import json
 from pathlib import Path
 
+from shoulderlab.log import get_logger
 from shoulderlab.paths import DATA_OUTPUTS, SHOULDERLAB_ROOT
+
+
+logger = get_logger()
 
 
 ANGLE_LABELS = {
@@ -191,9 +195,9 @@ def summarize_analysis(
     write_markdown(rows, md_path, input_dir)
     docs_path.parent.mkdir(parents=True, exist_ok=True)
     write_markdown(rows, docs_path, input_dir)
-    print(f'Wrote {csv_path}')
-    print(f'Wrote {md_path}')
-    print(f'Wrote {docs_path}')
+    logger.info("Wrote %s", csv_path)
+    logger.info("Wrote %s", md_path)
+    logger.info("Wrote %s", docs_path)
     return {
         'rows': len(rows),
         'csv_path': csv_path,

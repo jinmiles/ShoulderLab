@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Optional, List, Dict
 from tqdm import tqdm
 
+from shoulderlab.log import get_logger
 from shoulderlab.paths import DATA_OUTPUTS, DEFAULT_MODEL_ROOT, configure_hsmr_paths
 
 configure_hsmr_paths()
@@ -28,6 +29,9 @@ from shoulderlab.rom import (
 )
 
 
+logger = get_logger()
+
+
 def load_video_npy(path: Path):
     """
     Load video mode output (.npy) → poses (T,46), betas (T,10) for primary person.
@@ -35,7 +39,7 @@ def load_video_npy(path: Path):
     Frames with no detection are skipped.
     """
     data = np.load(path, allow_pickle=True)  # list of T dicts
-    print(f'[📂] Loaded {len(data)} frames from {path.name}')
+    logger.info("Loaded %s frames from %s", len(data), path.name)
 
     poses_list, betas_list = [], []
     for frame in data:
@@ -59,7 +63,7 @@ def load_video_npy(path: Path):
 
     poses = np.stack(poses_list)  # (T, 46)
     betas = np.stack(betas_list)  # (T, 10)
-    print(f'[📦] Extracted {len(poses)} frames (primary person).')
+    logger.info("Extracted %s frames for the primary person", len(poses))
     return poses, betas
 
 
@@ -79,13 +83,13 @@ def load_image_npz(path: Path):
             main_idx = np.argmax(bbx_cs[:, 2])  # pick the one with max bounding box scale
             poses = poses[main_idx:main_idx+1]
             betas = betas[main_idx:main_idx+1]
-            print(f'[📂] Loaded {num_instances} instances from {path.name}, but selected 1 main person.')
+            logger.info("Loaded %s instances from %s; selected the main person", num_instances, path.name)
         else:
             poses = poses[0:1]
             betas = betas[0:1]
-            print(f'[📂] Loaded {num_instances} instances from {path.name}, but selected 1st person.')
+            logger.info("Loaded %s instances from %s; selected the first person", num_instances, path.name)
     else:
-        print(f'[📂] Loaded {num_instances} instances from {path.name}')
+        logger.info("Loaded %s instances from %s", num_instances, path.name)
 
     return poses, betas
 
@@ -108,7 +112,7 @@ def recover_joints(poses, betas, pipeline, device, batch_size=200):
     Returns:
         joints: (T, 44, 3) numpy array in camera/world space
     """
-    print(f'[🦴] Recovering joints for {len(poses)} frames (bs={batch_size})...')
+    logger.info("Recovering joints for %s frames (batch_size=%s)", len(poses), batch_size)
     skel_model = pipeline.skel_model
     joints_all = []
 
@@ -124,7 +128,7 @@ def recover_joints(poses, betas, pipeline, device, batch_size=200):
         joints_all.append(skel_out.joints.detach().cpu().numpy())  # (B, 44, 3)
 
     joints = np.concatenate(joints_all, axis=0)  # (T, 44, 3)
-    print(f'[✅] joints shape: {joints.shape}')
+    logger.info("Recovered joints with shape %s", joints.shape)
     return joints
 
 
@@ -159,7 +163,7 @@ def run_analysis(
         raise ValueError(f'Unsupported file type: {input_path.suffix}  (expected .npy or .npz)')
 
     # ── 2. Build pipeline & recover joints ──────────────────────────
-    print(f'[🧱] Building SKEL model from {model_root}...')
+    logger.info("Building SKEL model from %s", model_root)
     pipeline = build_inference_pipeline(
         model_root=model_root,
         device=device,
@@ -168,10 +172,10 @@ def run_analysis(
     joints = recover_joints(poses, betas, pipeline, device, skel_bs)
 
     # ── 3. LCS Transformation (torso compensation filtering) ─────────
-    print('[📐] Computing Local Coordinate System (LCS)...')
+    logger.info("Computing Local Coordinate System (LCS)")
     R_list, origin_list = compute_lcs(joints)
     joints_local = transform_to_lcs(joints, R_list, origin_list)
-    print(f'[✅] LCS transformation done. joints_local shape: {joints_local.shape}')
+    logger.info("LCS transformation complete; joints_local shape %s", joints_local.shape)
 
     # ── 4. Angle computation & Convex Hull ───────────────────────────
     if side not in {"right", "left", "both"}:
@@ -181,11 +185,11 @@ def run_analysis(
     angles_per_side  = {}   # angles dict keyed by side (for video renderer)
 
     for side in sides:
-        print(f'\n[📏] Computing angles for [{side.upper()}] shoulder...')
+        logger.info("Computing angles for %s shoulder", side.upper())
         angles = compute_angles(joints_local, side=side)
 
         if mode == 'video':
-            print(f'[🫁] Computing 3D arm reach space (Convex Hull) for [{side.upper()}]...')
+            logger.info("Computing 3D arm reach space for %s shoulder", side.upper())
             volume, hull, wrist_pts = compute_reach_volume(joints_local, side=side)
         else:
             from shoulderlab.rom import SIDE_JOINTS
@@ -239,7 +243,7 @@ def run_analysis(
 
         with open(results_json_path, 'w') as f:
             json.dump(stats, f, indent=2, default=lambda x: None if x is None else float(x))
-        print(f'[✅] Results saved → {results_json_path}')
+        logger.info("Results saved to %s", results_json_path)
 
         results_per_side[side] = (volume, hull, wrist_pts)
         angles_per_side[side]  = angles
@@ -256,13 +260,13 @@ def run_analysis(
         title     = f'Upper Body Skeleton + Arm Reach Space  ({stem})  [LCS]',
     )
 
-    print('\n[🎊] Shoulder ROM analysis complete!')
-    print(f'     Output directory: {output_root.resolve()}')
+    logger.info("Shoulder ROM analysis complete")
+    logger.info("Output directory: %s", output_root.resolve())
 
     # ── 8. Video rendering (only for .npy video input) ────────────
     if mode == 'video' and not skip_video:
         video_path = output_root / f'{stem}_skeleton_video.mp4'
-        print(f'\n[🎬] Rendering skeleton video → {video_path}')
+        logger.info("Rendering skeleton video to %s", video_path)
         render_video(
             joints_local,
             angles_r   = angles_per_side.get('right', None),
@@ -299,7 +303,7 @@ def run_batch_analysis(
 
     results = []
     for npy_file in npy_files:
-        print(f"[Analysis] {npy_file.name}")
+        logger.info("Analyzing %s", npy_file.name)
         results.append(
             run_analysis(
                 input_path=npy_file,

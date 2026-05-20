@@ -25,6 +25,11 @@ from scipy.signal import find_peaks, savgol_filter
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
+from shoulderlab.log import get_logger
+
+
+logger = get_logger()
+
 
 # ─────────────────────────────────────────────
 #  Joint Index Definitions
@@ -297,7 +302,11 @@ def compute_reach_volume(
     wrist_pts = wrist_pts[valid]
 
     if len(wrist_pts) < min_points:
-        print(f'[WARNING] Only {len(wrist_pts)} valid wrist points, need ≥ {min_points}. Skipping Convex Hull.')
+        logger.warning(
+            "Only %s valid wrist points, need >= %s. Skipping Convex Hull.",
+            len(wrist_pts),
+            min_points,
+        )
         return None, None, wrist_pts
 
     try:
@@ -305,7 +314,7 @@ def compute_reach_volume(
         volume = hull.volume
         return volume, hull, wrist_pts
     except QhullError as e:
-        print(f'[WARNING] ConvexHull failed: {e}')
+        logger.warning("ConvexHull failed: %s", e)
         return None, None, wrist_pts
 
 
@@ -592,7 +601,7 @@ def visualize_temporal_features(
     if save_path:
         Path(save_path).parent.mkdir(parents=True, exist_ok=True)
         plt.savefig(save_path, dpi=600, bbox_inches='tight')
-        print(f'[✅] Temporal feature plot saved → {save_path}')
+        logger.info("Temporal feature plot saved to %s", save_path)
     else:
         plt.show()
     plt.close()
@@ -655,7 +664,7 @@ def visualize_angles(
     if save_path:
         Path(save_path).parent.mkdir(parents=True, exist_ok=True)
         plt.savefig(save_path, dpi=600, bbox_inches='tight')
-        print(f'[✅] Angle plot saved → {save_path}')
+        logger.info("Angle plot saved to %s", save_path)
     else:
         plt.show()
     plt.close()
@@ -731,7 +740,7 @@ def visualize_reach_space(
     if save_path:
         Path(save_path).parent.mkdir(parents=True, exist_ok=True)
         plt.savefig(save_path, dpi=600, bbox_inches='tight')
-        print(f'[✅] Reach space plot saved → {save_path}')
+        logger.info("Reach space plot saved to %s", save_path)
     else:
         plt.show()
     plt.close()
@@ -744,29 +753,29 @@ def print_summary(
 ) -> Dict:
     """Print and return a summary dict of ROM statistics."""
     stats = {'side': side}
-    print(f'\n{"─"*50}')
-    print(f'  Shoulder ROM Analysis Summary  ({side.upper()} side)')
-    print(f'{"─"*50}')
+    logger.info("%s", "-" * 50)
+    logger.info("Shoulder ROM Analysis Summary (%s side)", side.upper())
+    logger.info("%s", "-" * 50)
     for key, label in [('flexion','Flexion'), ('abduction','Abduction'), ('ext_rotation','Ext.Rotation')]:
         vals = angles[key]
         valid = vals[~np.isnan(vals)]
         if len(valid) == 0:
-            print(f'  {label:20s}: no data')
+            logger.info("%-20s: no data", label)
             stats[key] = {'max': None, 'mean': None}
         else:
             mx   = float(np.max(valid))
             mn   = float(np.min(valid))
             mean = float(np.mean(valid))
-            print(f'  {label:20s}: max={mx:+6.1f}°  min={mn:+6.1f}°  mean={mean:+6.1f}°')
+            logger.info("%-20s: max=%+6.1f deg  min=%+6.1f deg  mean=%+6.1f deg", label, mx, mn, mean)
             stats[key] = {'max': mx, 'min': mn, 'mean': mean}
 
     if volume is not None:
         vol_cm3 = volume * 1e6
-        print(f'  {"3D Reach Volume":20s}: {vol_cm3:.1f} cm³  ({volume*1e3:.4f} dm³)')
+        logger.info("%-20s: %.1f cm^3  (%.4f dm^3)", "3D Reach Volume", vol_cm3, volume * 1e3)
         stats['reach_volume_cm3'] = vol_cm3
     else:
         stats['reach_volume_cm3'] = None
-    print(f'{"─"*50}\n')
+    logger.info("%s", "-" * 50)
     return stats
 
 
@@ -1031,7 +1040,7 @@ def visualize_skeleton_with_reach(
         Path(save_path).parent.mkdir(parents=True, exist_ok=True)
         plt.savefig(save_path, dpi=600, bbox_inches='tight',
                     facecolor=fig.get_facecolor())
-        print(f'[✅] Combined skeleton+reach plot saved → {save_path}')
+        logger.info("Combined skeleton and reach plot saved to %s", save_path)
     else:
         plt.show()
     plt.close()
@@ -1151,7 +1160,7 @@ def render_video(
             vl.set_xdata([t_s, t_s])
         return []
 
-    print(f'[Movie] Rendering {len(frames)} frames (fps={fps:.0f}, stride={stride})...')
+    logger.info("Rendering %s frames (fps=%.0f, stride=%s)", len(frames), fps, stride)
     ani = mpl_anim.FuncAnimation(fig, _update, frames=len(frames), interval=int(1000/fps), blit=False)
     Path(save_path).parent.mkdir(parents=True, exist_ok=True)
 
@@ -1160,9 +1169,9 @@ def render_video(
         writer = mpl_anim.FFMpegWriter(fps=fps/stride, bitrate=15000,
                                         extra_args=['-vcodec', 'libx264', '-pix_fmt', 'yuv420p', '-vf', 'scale=1920:-2'])
         ani.save(save_path, writer=writer, dpi=600, savefig_kwargs={'facecolor': BG})
-        print(f'[✅] MP4 Video saved -> {save_path}')
+        logger.info("MP4 video saved to %s", save_path)
     except Exception as e:
-        print(f'[⚠️] FFMpeg failed ({e}), skipping MP4 generation.')
+        logger.warning("FFMpeg failed (%s), skipping MP4 generation.", e)
 
 
 

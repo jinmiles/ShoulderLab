@@ -6,7 +6,11 @@ import sys
 from typing import Dict, Tuple
 from pathlib import Path
 
+from shoulderlab.log import get_logger
 from shoulderlab.paths import DATA_INPUTS, DATA_OUTPUTS, DEFAULT_MODEL_ROOT, configure_hsmr_paths
+
+
+logger = get_logger()
 
 
 def prepare_mesh_with_small_batches(pipeline, pd_params, batch_size: int = 200) -> Tuple[Dict, Dict]:
@@ -50,6 +54,7 @@ def run_hsmr(
     have_caption: bool = False,
 ) -> None:
     """Run upstream HSMR while keeping inputs and outputs under ShoulderLab."""
+    logger.info("Running HSMR on %s", input_path)
     configure_hsmr_paths()
     output_path = Path(output_path)
     output_path.mkdir(parents=True, exist_ok=True)
@@ -92,6 +97,7 @@ def run_hsmr(
         hsmr_main()
     finally:
         sys.argv = old_argv
+    logger.info("HSMR output directory: %s", output_path.resolve())
 
 
 def run_uucm_hsmr(
@@ -109,7 +115,7 @@ def run_uucm_hsmr(
         raise SystemExit(f"No videos found in {input_dir}")
 
     for video in videos:
-        print(f"[HSMR] Reconstructing {video.name}")
+        logger.info("Reconstructing %s", video.name)
         run_hsmr(
             input_path=video,
             output_path=output_dir,

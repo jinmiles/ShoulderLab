@@ -54,6 +54,12 @@ ShoulderLab uses the same HSMR model assets, but stores them at the ShoulderLab 
 ```text
 data_inputs/
 ├── UUCM/
+├── shoulder/
+│   └── subjectXX/
+│       └── NNN_movement_name/
+│           ├── cam_a.mp4
+│           ├── cam_b.mp4
+│           └── cam_c.mp4
 ├── backbone/
 │   └── vitpose_backbone.pth
 ├── body_models/
@@ -73,6 +79,13 @@ Minimum required assets:
 - ViTPose backbone checkpoint: `data_inputs/backbone/vitpose_backbone.pth`
 - local videos: `data_inputs/UUCM/*.MP4`
 
+Shoulder multiview videos are stored under `data_inputs/shoulder` as
+`subjectXX/NNN_movement_name/cam_*.mp4`. In each movement trial, `cam_a`,
+`cam_b`, and `cam_c` are synchronized left, right, and center views respectively.
+See `docs/Shoulder_Data_Structure.md` for the full data layout convention, and
+`docs/Shoulder_Multiview_Pi3_HSMR_Pipeline.md` for the planned Pi3/HSMR
+multiview reconstruction and validation workflow.
+
 For fresh setup, follow the download instructions in `third_party/HSMR/docs/SETUP.md`, but place files under ShoulderLab `data_inputs/`, not under `third_party/HSMR/data_inputs/`.
 
 ## Command Line
@@ -82,6 +95,9 @@ All commands go through one entrypoint:
 ```bash
 python scripts/shoulderlab.py --help
 ```
+
+ShoulderLab-owned progress messages use timestamped logs such as
+`[ShoulderLab] YYYY-MM-DD HH:MM:SS INFO ...`.
 
 Available commands:
 
