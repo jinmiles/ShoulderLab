@@ -59,13 +59,14 @@ def run_hsmr(
     output_path = Path(output_path)
     output_path.mkdir(parents=True, exist_ok=True)
 
+    import exp.run_demo as hsmr_run_demo
     import lib.kits.hsmr_demo as hsmr_demo
-    from exp.run_demo import main as hsmr_main
 
     def _prepare_mesh(pipeline, pd_params):
         return prepare_mesh_with_small_batches(pipeline, pd_params, batch_size=mesh_bs)
 
     hsmr_demo.prepare_mesh = _prepare_mesh
+    hsmr_run_demo.prepare_mesh = _prepare_mesh
 
     argv = [
         "shoulderlab hsmr",
@@ -94,7 +95,7 @@ def run_hsmr(
     old_argv = sys.argv
     try:
         sys.argv = argv
-        hsmr_main()
+        hsmr_run_demo.main()
     finally:
         sys.argv = old_argv
     logger.info("HSMR output directory: %s", output_path.resolve())
