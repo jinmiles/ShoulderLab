@@ -67,6 +67,14 @@ def _add_shoulder_trial_options(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--input-root", type=Path, default=DATA_INPUTS / "shoulder")
 
 
+def _add_shoulder_dataset_options(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--subject", default=None, help="Optional subject filter.")
+    parser.add_argument("--movement", default=None, help="Optional movement filter.")
+    parser.add_argument("--reference-view", choices=["cam_a", "cam_b", "cam_c"], default="cam_c")
+    parser.add_argument("--manifest-path", type=Path, default=DATA_OUTPUTS / "shoulder" / "manifests" / "shoulder_manifest.json")
+    parser.add_argument("--input-root", type=Path, default=DATA_INPUTS / "shoulder")
+
+
 def _add_pi3_options(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--pi3-model", choices=["pi3", "pi3x"], default="pi3")
     parser.add_argument("--pi3-ckpt", type=Path, default=None)
@@ -137,6 +145,71 @@ def _fused_analysis_kwargs(args: argparse.Namespace) -> dict:
     }
 
 
+def _add_shoulder_pipeline_options(parser: argparse.ArgumentParser) -> None:
+    _add_pi3_options(parser)
+    parser.add_argument("-m", "--model-root", type=Path, default=DEFAULT_MODEL_ROOT)
+    parser.add_argument("--det-bs", type=int, default=10)
+    parser.add_argument("--det-mis", type=int, default=512)
+    parser.add_argument("--rec-bs", type=int, default=300)
+    parser.add_argument("--mesh-bs", type=int, default=200)
+    parser.add_argument("--max-instances", type=int, default=5)
+    parser.add_argument("--ignore-skel", action="store_true")
+    parser.add_argument("--have-caption", action="store_true")
+    parser.add_argument("--skel-bs", type=int, default=200)
+    parser.add_argument("--alignment-variant", choices=["static", "dynamic"], default="static")
+    parser.add_argument("-s", "--side", choices=["right", "left", "both"], default="both")
+    parser.add_argument("--fps", type=float, default=None)
+    parser.add_argument("--sg-window-sec", type=float, default=0.33)
+    parser.add_argument("--sg-polyorder", type=int, default=3)
+    parser.add_argument("--peak-prominence-deg", type=float, default=None)
+    parser.add_argument("--skip-pi3", action="store_true")
+    parser.add_argument("--skip-hsmr", action="store_true")
+    parser.add_argument("--skip-video", action="store_true")
+    parser.add_argument("--require-pi3", action="store_true")
+
+
+def _shoulder_pipeline_kwargs(args: argparse.Namespace) -> dict:
+    pi3_kwargs = _pi3_kwargs(args)
+    force = pi3_kwargs.pop("force")
+    hsmr_kwargs = {
+        "model_root": args.model_root,
+        "device": args.device,
+        "det_bs": args.det_bs,
+        "det_mis": args.det_mis,
+        "rec_bs": args.rec_bs,
+        "mesh_bs": args.mesh_bs,
+        "max_instances": args.max_instances,
+        "ignore_skel": args.ignore_skel,
+        "have_caption": args.have_caption,
+    }
+    fuse_kwargs = {
+        "model_root": args.model_root,
+        "device": args.device,
+        "skel_bs": args.skel_bs,
+        "alignment_variant": args.alignment_variant,
+        "side": args.side,
+        "fps": args.fps,
+        "require_pi3": args.require_pi3,
+    }
+    analysis_kwargs = {
+        "side": args.side,
+        "fps": args.fps,
+        "sg_window_sec": args.sg_window_sec,
+        "sg_polyorder": args.sg_polyorder,
+        "peak_prominence_deg": args.peak_prominence_deg,
+        "skip_video": args.skip_video,
+    }
+    return {
+        "skip_pi3": args.skip_pi3,
+        "skip_hsmr": args.skip_hsmr,
+        "force": force,
+        "pi3_kwargs": pi3_kwargs,
+        "hsmr_kwargs": hsmr_kwargs,
+        "fuse_kwargs": fuse_kwargs,
+        "analysis_kwargs": analysis_kwargs,
+    }
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="shoulderlab")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -194,26 +267,12 @@ def build_parser() -> argparse.ArgumentParser:
 
     shoulder_pipeline = subparsers.add_parser("shoulder-pipeline", help="Run manifest, Pi3, HSMR, fusion, and fused ROM analysis.")
     _add_shoulder_trial_options(shoulder_pipeline)
-    _add_pi3_options(shoulder_pipeline)
-    shoulder_pipeline.add_argument("-m", "--model-root", type=Path, default=DEFAULT_MODEL_ROOT)
-    shoulder_pipeline.add_argument("--det-bs", type=int, default=10)
-    shoulder_pipeline.add_argument("--det-mis", type=int, default=512)
-    shoulder_pipeline.add_argument("--rec-bs", type=int, default=300)
-    shoulder_pipeline.add_argument("--mesh-bs", type=int, default=200)
-    shoulder_pipeline.add_argument("--max-instances", type=int, default=5)
-    shoulder_pipeline.add_argument("--ignore-skel", action="store_true")
-    shoulder_pipeline.add_argument("--have-caption", action="store_true")
-    shoulder_pipeline.add_argument("--skel-bs", type=int, default=200)
-    shoulder_pipeline.add_argument("--alignment-variant", choices=["static", "dynamic"], default="static")
-    shoulder_pipeline.add_argument("-s", "--side", choices=["right", "left", "both"], default="both")
-    shoulder_pipeline.add_argument("--fps", type=float, default=None)
-    shoulder_pipeline.add_argument("--sg-window-sec", type=float, default=0.33)
-    shoulder_pipeline.add_argument("--sg-polyorder", type=int, default=3)
-    shoulder_pipeline.add_argument("--peak-prominence-deg", type=float, default=None)
-    shoulder_pipeline.add_argument("--skip-pi3", action="store_true")
-    shoulder_pipeline.add_argument("--skip-hsmr", action="store_true")
-    shoulder_pipeline.add_argument("--skip-video", action="store_true")
-    shoulder_pipeline.add_argument("--require-pi3", action="store_true")
+    _add_shoulder_pipeline_options(shoulder_pipeline)
+
+    shoulder_dataset = subparsers.add_parser("shoulder-dataset", help="Run the shoulder pipeline for every valid trial.")
+    _add_shoulder_dataset_options(shoulder_dataset)
+    _add_shoulder_pipeline_options(shoulder_dataset)
+    shoulder_dataset.add_argument("--continue-on-error", action="store_true")
 
     return parser
 
@@ -321,49 +380,25 @@ def main(argv: list[str] | None = None) -> None:
         elif args.command == "shoulder-pipeline":
             from shoulderlab.shoulder_pipeline import run_shoulder_pipeline
 
-            pi3_kwargs = _pi3_kwargs(args)
-            force = pi3_kwargs.pop("force")
-            hsmr_kwargs = {
-                "model_root": args.model_root,
-                "device": args.device,
-                "det_bs": args.det_bs,
-                "det_mis": args.det_mis,
-                "rec_bs": args.rec_bs,
-                "mesh_bs": args.mesh_bs,
-                "max_instances": args.max_instances,
-                "ignore_skel": args.ignore_skel,
-                "have_caption": args.have_caption,
-            }
-            fuse_kwargs = {
-                "model_root": args.model_root,
-                "device": args.device,
-                "skel_bs": args.skel_bs,
-                "alignment_variant": args.alignment_variant,
-                "side": args.side,
-                "fps": args.fps,
-                "require_pi3": args.require_pi3,
-            }
-            analysis_kwargs = {
-                "side": args.side,
-                "fps": args.fps,
-                "sg_window_sec": args.sg_window_sec,
-                "sg_polyorder": args.sg_polyorder,
-                "peak_prominence_deg": args.peak_prominence_deg,
-                "skip_video": args.skip_video,
-            }
             run_shoulder_pipeline(
                 subject=args.subject,
                 movement=args.movement,
                 reference_view=args.reference_view,
                 manifest_path=args.manifest_path,
                 input_root=args.input_root,
-                skip_pi3=args.skip_pi3,
-                skip_hsmr=args.skip_hsmr,
-                force=force,
-                pi3_kwargs=pi3_kwargs,
-                hsmr_kwargs=hsmr_kwargs,
-                fuse_kwargs=fuse_kwargs,
-                analysis_kwargs=analysis_kwargs,
+                **_shoulder_pipeline_kwargs(args),
+            )
+        elif args.command == "shoulder-dataset":
+            from shoulderlab.shoulder_pipeline import run_shoulder_dataset
+
+            run_shoulder_dataset(
+                reference_view=args.reference_view,
+                manifest_path=args.manifest_path,
+                input_root=args.input_root,
+                subject=args.subject,
+                movement=args.movement,
+                continue_on_error=args.continue_on_error,
+                **_shoulder_pipeline_kwargs(args),
             )
     except SystemExit as exc:
         if exc.code in (0, None):

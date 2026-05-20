@@ -260,6 +260,112 @@ def run_shoulder_pipeline(
         reference_view=reference_view,
     )
     trial = select_trial(manifest, subject, movement)
+    return _run_trial_pipeline(
+        trial=trial,
+        manifest_path=manifest_path,
+        input_root=input_root,
+        reference_view=reference_view,
+        skip_pi3=skip_pi3,
+        skip_hsmr=skip_hsmr,
+        force=force,
+        pi3_kwargs=pi3_kwargs,
+        hsmr_kwargs=hsmr_kwargs,
+        fuse_kwargs=fuse_kwargs,
+        analysis_kwargs=analysis_kwargs,
+    )
+
+
+def run_shoulder_dataset(
+    reference_view: str = DEFAULT_REFERENCE_VIEW,
+    manifest_path: Path = MANIFEST_OUTPUT,
+    input_root: Path = SHOULDER_INPUT_ROOT,
+    subject: Optional[str] = None,
+    movement: Optional[str] = None,
+    skip_pi3: bool = False,
+    skip_hsmr: bool = False,
+    force: bool = False,
+    continue_on_error: bool = False,
+    pi3_kwargs: Optional[dict] = None,
+    hsmr_kwargs: Optional[dict] = None,
+    fuse_kwargs: Optional[dict] = None,
+    analysis_kwargs: Optional[dict] = None,
+) -> dict:
+    """Run the end-to-end shoulder pipeline for every valid manifest trial."""
+    manifest = run_shoulder_manifest(
+        input_root=input_root,
+        output_path=manifest_path,
+        subject=subject,
+        movement=movement,
+        reference_view=reference_view,
+    )
+    valid_trials = [trial for trial in manifest.get("trials", []) if trial.get("valid")]
+    invalid_trials = [trial for trial in manifest.get("trials", []) if not trial.get("valid")]
+    if invalid_trials:
+        logger.warning(
+            "Skipping %s invalid shoulder trial(s): %s",
+            len(invalid_trials),
+            ", ".join(f"{trial['subject']}/{trial['movement']}" for trial in invalid_trials[:10]),
+        )
+    if not valid_trials:
+        raise SystemExit("No valid shoulder trials found")
+
+    outputs = {}
+    failures = []
+    logger.info("Running shoulder dataset pipeline for %s valid trial(s)", len(valid_trials))
+    for index, trial in enumerate(valid_trials, start=1):
+        subject_name = trial["subject"]
+        movement_name = trial["movement"]
+        label = f"{subject_name}/{movement_name}"
+        logger.info("Running shoulder trial %s/%s: %s", index, len(valid_trials), label)
+        try:
+            outputs[label] = _run_trial_pipeline(
+                trial=trial,
+                manifest_path=manifest_path,
+                input_root=input_root,
+                reference_view=reference_view,
+                skip_pi3=skip_pi3,
+                skip_hsmr=skip_hsmr,
+                force=force,
+                pi3_kwargs=pi3_kwargs,
+                hsmr_kwargs=hsmr_kwargs,
+                fuse_kwargs=fuse_kwargs,
+                analysis_kwargs=analysis_kwargs,
+            )
+        except SystemExit as exc:
+            if exc.code in (0, None):
+                raise
+            failures.append({"trial": label, "error": _system_exit_message(exc)})
+            logger.error("Shoulder trial failed: %s: %s", label, failures[-1]["error"])
+            if not continue_on_error:
+                raise
+        except Exception as exc:
+            failures.append({"trial": label, "error": str(exc)})
+            logger.exception("Shoulder trial failed: %s", label)
+            if not continue_on_error:
+                raise
+
+    if failures:
+        labels = ", ".join(failure["trial"] for failure in failures[:10])
+        raise SystemExit(f"Shoulder dataset finished with {len(failures)} failed trial(s): {labels}")
+    logger.info("Finished shoulder dataset pipeline for %s valid trial(s)", len(valid_trials))
+    return {"manifest": manifest_path, "outputs": outputs, "failures": failures}
+
+
+def _run_trial_pipeline(
+    trial: dict,
+    manifest_path: Path,
+    input_root: Path,
+    reference_view: str,
+    skip_pi3: bool,
+    skip_hsmr: bool,
+    force: bool,
+    pi3_kwargs: Optional[dict],
+    hsmr_kwargs: Optional[dict],
+    fuse_kwargs: Optional[dict],
+    analysis_kwargs: Optional[dict],
+) -> dict:
+    subject = trial["subject"]
+    movement = trial["movement"]
     outputs = {"manifest": manifest_path}
 
     pi3_kwargs = dict(pi3_kwargs or {})
@@ -296,6 +402,12 @@ def run_shoulder_pipeline(
         **analysis_kwargs,
     )
     return outputs
+
+
+def _system_exit_message(exc: SystemExit) -> str:
+    if exc.code in (0, None):
+        return "0"
+    return str(exc.code)
 
 
 def align_trial_joints(

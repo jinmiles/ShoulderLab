@@ -113,6 +113,7 @@ python scripts/shoulderlab.py hsmr-shoulder --help
 python scripts/shoulderlab.py fuse-shoulder --help
 python scripts/shoulderlab.py analyze-shoulder --help
 python scripts/shoulderlab.py shoulder-pipeline --help
+python scripts/shoulderlab.py shoulder-dataset --help
 ```
 
 ## Quick Start
@@ -199,6 +200,29 @@ python scripts/shoulderlab.py shoulder-pipeline \
   --reference-view cam_c \
   --skip-video
 ```
+
+Run the end-to-end pipeline for every valid trial under `data_inputs/shoulder/`:
+
+```bash
+python scripts/shoulderlab.py shoulder-dataset \
+  --reference-view cam_c \
+  --device cuda:0 \
+  --det-bs 2 \
+  --rec-bs 32 \
+  --mesh-bs 32 \
+  --max-instances 1 \
+  --ignore-skel \
+  --skip-video
+```
+
+One-line full dataset command with forced reruns and failure continuation:
+
+```bash
+conda run --no-capture-output -n shoulderlab python scripts/shoulderlab.py shoulder-dataset --reference-view cam_c --device cuda:0 --det-bs 2 --rec-bs 32 --mesh-bs 32 --max-instances 1 --ignore-skel --skip-video --force --continue-on-error
+```
+
+Use `--subject`, `--movement`, or both to process a subset. Add
+`--continue-on-error` to keep processing later trials after a failed trial.
 
 The pipeline writes stage outputs under `data_outputs/shoulder/`:
 
