@@ -11,6 +11,7 @@ LOGGER_NAME = "ShoulderLab"
 LOG_FORMAT = "[ShoulderLab][%(asctime)s][%(levelname)s] %(message)s"
 LOG_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 RESET = "\033[0m"
+CYAN = "\033[36m"
 COLORS = {
     logging.DEBUG: "\033[36m",
     logging.INFO: "\033[32m",
@@ -21,7 +22,7 @@ COLORS = {
 
 
 class ShoulderLabFormatter(logging.Formatter):
-    """Colorize ShoulderLab log prefixes when writing to a terminal."""
+    """Colorize ShoulderLab log metadata when writing to a terminal."""
 
     def __init__(
         self,
@@ -33,13 +34,21 @@ class ShoulderLabFormatter(logging.Formatter):
         self.use_color = use_color
 
     def format(self, record: logging.LogRecord) -> str:
-        message = super().format(record)
+        message = record.getMessage()
+        if record.exc_info:
+            message = f"{message}\n{self.formatException(record.exc_info)}"
+        if record.stack_info:
+            message = f"{message}\n{self.formatStack(record.stack_info)}"
+
+        timestamp = self.formatTime(record, self.datefmt)
         if not self.use_color:
-            return message
-        color = COLORS.get(record.levelno)
-        if not color:
-            return message
-        return f"{color}{message}{RESET}"
+            return f"[{LOGGER_NAME}][{timestamp}][{record.levelname}] {message}"
+
+        level_color = COLORS.get(record.levelno, "")
+        project = f"{CYAN}{LOGGER_NAME}{RESET}"
+        time_text = f"{CYAN}{timestamp}{RESET}"
+        level = f"{level_color}{record.levelname}{RESET}" if level_color else record.levelname
+        return f"[{project}][{time_text}][{level}] {message}"
 
 
 def configure_logging(level: int = logging.INFO) -> logging.Logger:
