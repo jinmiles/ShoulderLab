@@ -10,6 +10,7 @@ from pathlib import Path
 SHOULDERLAB_ROOT = Path(__file__).resolve().parents[1]
 THIRD_PARTY_ROOT = SHOULDERLAB_ROOT / "third_party"
 HSMR_ROOT = THIRD_PARTY_ROOT / "HSMR"
+PI3_ROOT = THIRD_PARTY_ROOT / "Pi3"
 
 DATA_INPUTS = SHOULDERLAB_ROOT / "data_inputs"
 DATA_OUTPUTS = SHOULDERLAB_ROOT / "data_outputs"
@@ -33,3 +34,10 @@ def configure_hsmr_paths() -> None:
     PM.configs = HSMR_ROOT / "configs"
     PM.inputs = DATA_INPUTS
     PM.outputs = DATA_OUTPUTS
+
+
+def configure_pi3_paths() -> None:
+    """Make the upstream Pi3 package importable without patching third_party."""
+    pi3_root = str(PI3_ROOT)
+    if pi3_root not in sys.path:
+        sys.path.insert(0, pi3_root)

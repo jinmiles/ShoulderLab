@@ -107,6 +107,12 @@ python scripts/shoulderlab.py analyze-uucm --help
 python scripts/shoulderlab.py hsmr --help
 python scripts/shoulderlab.py hsmr-uucm --help
 python scripts/shoulderlab.py summary --help
+python scripts/shoulderlab.py shoulder-manifest --help
+python scripts/shoulderlab.py pi3-shoulder --help
+python scripts/shoulderlab.py hsmr-shoulder --help
+python scripts/shoulderlab.py fuse-shoulder --help
+python scripts/shoulderlab.py analyze-shoulder --help
+python scripts/shoulderlab.py shoulder-pipeline --help
 ```
 
 ## Quick Start
@@ -155,6 +161,69 @@ python scripts/shoulderlab.py hsmr-uucm \
 ```
 
 For videos, HSMR mesh rendering can be slow. Use `--ignore-skel`, reduce `--max-instances`, or lower `--mesh-bs` if runtime or GPU memory is a problem.
+
+## Shoulder Multiview Pipeline
+
+The shoulder multiview commands implement the planned Pi3/HSMR workflow without
+modifying upstream submodules:
+
+```bash
+python scripts/shoulderlab.py shoulder-manifest
+
+python scripts/shoulderlab.py pi3-shoulder \
+  --subject subject01 \
+  --movement 001_flexion
+
+python scripts/shoulderlab.py hsmr-shoulder \
+  --subject subject01 \
+  --movement 001_flexion
+
+python scripts/shoulderlab.py fuse-shoulder \
+  --subject subject01 \
+  --movement 001_flexion \
+  --reference-view cam_c
+
+python scripts/shoulderlab.py analyze-shoulder \
+  --subject subject01 \
+  --movement 001_flexion \
+  --reference-view cam_c \
+  --skip-video
+```
+
+End-to-end execution:
+
+```bash
+python scripts/shoulderlab.py shoulder-pipeline \
+  --subject subject01 \
+  --movement 001_flexion \
+  --reference-view cam_c \
+  --skip-video
+```
+
+The pipeline writes stage outputs under `data_outputs/shoulder/`:
+
+```text
+manifests/shoulder_manifest.json
+pi3/<subject>/<movement>/pi3_geometry.npz
+pi3/<subject>/<movement>/camera_poses.json
+pi3/<subject>/<movement>/pose_stability.json
+hsmr/<subject>/<movement>/<cam_*>/HSMR-*.npy
+joints/<subject>/<movement>/<cam_*>/joints.npz
+eval/<subject>/<movement>/view_alignment_report.json
+eval/<subject>/<movement>/single_view_vs_fused_metrics.csv
+eval/<subject>/<movement>/comparison_report.md
+fused/<subject>/<movement>/fused_joints.npz
+fused/<subject>/<movement>/fusion_quality.json
+analysis/<subject>/<movement>/fused_results.json
+analysis/<subject>/<movement>/quality_report.md
+```
+
+Pi3/Pi3X and HSMR are GPU-heavy stages. Re-running a command reuses existing
+stage artifacts by default; pass `--force` for `pi3-shoulder`, `hsmr-shoulder`,
+or `shoulder-pipeline` when a stage should be regenerated. The upstream Pi3
+code currently requires a Python version that can import runtime annotations
+such as `tuple[...]`; run the Pi3 stage from Python 3.9+ or provide a compatible
+Pi3 environment, while HSMR/SKEL recovery can remain in the `hsmr` environment.
 
 ## Outputs
 
