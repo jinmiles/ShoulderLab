@@ -328,6 +328,7 @@ def _raise_pi3_import_error(exc: TypeError) -> None:
             "Upstream Pi3/Pi3X is not importable under Python 3.8 because it "
             "uses runtime PEP 585 annotations such as tuple[...]. Run the Pi3 "
             "stage from a Python >=3.9 environment or update upstream Pi3 in "
-            "third_party separately. HSMR stages can still run in the hsmr env."
+            "third_party separately. HSMR stages can still run in the "
+            "shoulderlab env."
         ) from exc
     raise exc

@@ -223,7 +223,8 @@ stage artifacts by default; pass `--force` for `pi3-shoulder`, `hsmr-shoulder`,
 or `shoulder-pipeline` when a stage should be regenerated. The upstream Pi3
 code currently requires a Python version that can import runtime annotations
 such as `tuple[...]`; run the Pi3 stage from Python 3.9+ or provide a compatible
-Pi3 environment, while HSMR/SKEL recovery can remain in the `hsmr` environment.
+Pi3 environment, while HSMR/SKEL recovery can remain in the `shoulderlab`
+environment.
 
 ## Outputs
 

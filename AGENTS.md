@@ -89,17 +89,17 @@ dependencies.
 
 ## Environment
 
-Use the existing `hsmr` conda environment unless the user says otherwise. HSMR
-and its project dependencies are already installed in that environment; do not
+Use the existing `shoulderlab` conda environment unless the user says otherwise.
+HSMR and its project dependencies are already installed in that environment; do not
 run `pip install` as a routine setup step.
 
 ```bash
-conda activate hsmr
+conda activate shoulderlab
 python --version
 ```
 
-The expected Python version is 3.8.x because the project follows HSMR's
-Python 3.8 setup. Match `torch` and CUDA to the local machine.
+The expected Python version is 3.10.x, matching the ShoulderLab environment
+documented in `README.md`. Match `torch` and CUDA to the local machine.
 
 ## Common Commands
 
