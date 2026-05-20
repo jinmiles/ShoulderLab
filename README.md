@@ -96,8 +96,8 @@ All commands go through one entrypoint:
 python scripts/shoulderlab.py --help
 ```
 
-ShoulderLab-owned progress messages use timestamped logs such as
-`[ShoulderLab] YYYY-MM-DD HH:MM:SS INFO ...`.
+ShoulderLab-owned progress messages use colorized, timestamped logs such as
+`[ShoulderLab][YYYY-MM-DD HH:MM:SS][INFO] ...`.
 
 Available commands:
 

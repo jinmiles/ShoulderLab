@@ -165,7 +165,7 @@ unless the change specifically touches reconstruction behavior.
   help long-running GPU workflows.
 - Use the shared `shoulderlab.log` logger for ShoulderLab-owned Python output.
   CLI execution should emit timestamped messages formatted like
-  `[ShoulderLab] YYYY-MM-DD HH:MM:SS LEVEL message`. Avoid raw `print()` for
+  `[ShoulderLab][YYYY-MM-DD HH:MM:SS][LEVEL] message`. Avoid raw `print()` for
   new ShoulderLab status/progress messages unless there is a specific reason.
 
 ## Data And Safety
